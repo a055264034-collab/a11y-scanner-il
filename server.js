@@ -109,6 +109,19 @@ app.get('/demo/inaccessible', (_req, res) => {
 <p style="color:#ccc;background:#fff">טקסט עם ניגודיות נמוכה</p>
 <marquee>טקסט נע</marquee>
 <iframe src="about:blank"></iframe>
+<footer><a href="/demo/statement">הצהרת נגישות</a></footer>
+</body>
+</html>`);
+});
+
+app.get('/demo/statement', (_req, res) => {
+  res.type('html').send(`<!doctype html>
+<html lang="he" dir="rtl">
+<head><meta charset="utf-8"><title>הצהרת נגישות — דמו</title></head>
+<body>
+<h1>הצהרת נגישות</h1>
+<p>הצהרה זו עודכנה לאחרונה בתאריך 1 בינואר 2026.</p>
+<p>רכז נגישות: ישראל ישראלי, טלפון 03-1234567, דוא״ל access@example.co.il</p>
 </body>
 </html>`);
 });
