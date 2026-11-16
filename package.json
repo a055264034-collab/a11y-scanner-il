@@ -1,0 +1,17 @@
+{
+  "name": "a11y-scanner-il",
+  "version": "1.0.0",
+  "private": true,
+  "description": "בודק נגישות אתרים לפי התקן הישראלי ת\"י 5568 (WCAG 2.0 AA)",
+  "main": "server.js",
+  "type": "commonjs",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "axe-core": "^4.10.2",
+    "express": "^4.21.2",
+    "puppeteer-core": "^23.11.1"
+  }
+}

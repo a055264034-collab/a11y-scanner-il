@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>בודק נגישות — ת״י 5568</title>
+<meta name="description" content="כלי לבדיקת נגישות אתרים לפי התקן הישראלי ת״י 5568 (WCAG 2.0 רמה AA)">
+<link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+<a class="skip-link" href="#main">דלג לתוכן</a>
+<header class="site-header">
+  <div class="wrap">
+    <h1>בודק נגישות לאתרים</h1>
+    <p class="subtitle">סריקה אוטומטית מול התקן הישראלי <strong>ת״י 5568 חלק 1</strong> (מהדורת ספטמבר 2023), המאמץ <strong>WCAG 2.0 רמה AA</strong> עם תוספות לאומיות.</p>
+  </div>
+</header>
+
+<main id="main" class="wrap">
+  <section class="card" aria-labelledby="form-h">
+    <h2 id="form-h" class="sr-only">טופס סריקה</h2>
+    <form id="scan-form">
+      <label for="url-input">כתובת האתר (URL)</label>
+      <div class="form-row">
+        <input id="url-input" name="url" type="url" inputmode="url" dir="ltr" placeholder="https://example.co.il" required autocomplete="url">
+        <select id="max-pages" aria-label="מספר דפים מקסימלי לסריקה">
+          <option value="10">עד 10 דפים</option>
+          <option value="20" selected>עד 20 דפים</option>
+          <option value="30">עד 30 דפים</option>
+          <option value="50">עד 50 דפים</option>
+        </select>
+        <button type="submit" id="scan-btn">התחל סריקה</button>
+      </div>
+      <p class="hint">הסורק עובר על דפים פומביים באותו דומיין (עד המגבלה שבחרת) ובודק כללים הניתנים לבדיקה אוטומטית.</p>
+    </form>
+  </section>
+
+  <div id="error-box" class="error-box" role="alert" hidden></div>
+
+  <section id="progress-card" class="card" hidden aria-labelledby="progress-h" aria-live="polite">
+    <h2 id="progress-h">סריקה מתבצעת…</h2>
+    <div class="progress-bar" role="progressbar" id="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+      <div class="progress-fill" id="progress-fill"></div>
+    </div>
+    <p id="progress-text"></p>
+  </section>
+
+  <section id="report" hidden aria-labelledby="report-h">
+    <h2 id="report-h" class="sr-only">דוח תוצאות</h2>
+
+    <div class="honesty-banner" role="note">
+      <h3>חשוב לדעת</h3>
+      <p>בדיקה אוטומטית מכסה רק חלק מדרישות הנגישות (מקובל להעריך כשליש עד מחצית מקריטריוני WCAG). <strong>תוצאה נקייה אינה ערובה לעמידה מלאה בחוק</strong>, ותוצאה עם ממצאים אינה פסיקה משפטית. להלן בנוסף רשימת הבדיקות הידניות הנדרשות, כולל הצהרת נגישות. הדוח אינו ייעוץ משפטי.</p>
+    </div>
+
+    <div class="summary-grid" id="summary-grid"></div>
+
+    <section class="card" aria-labelledby="pages-h">
+      <h3 id="pages-h">ממצאים לפי דף</h3>
+      <div id="pages-list"></div>
+    </section>
+
+    <section class="card" aria-labelledby="manual-h">
+      <h3 id="manual-h">בדיקות הידניות הנדרשות (לא נבדקו אוטומטית)</h3>
+      <ul id="manual-list" class="manual-list"></ul>
+    </section>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <p>הכלי מבוסס על מנוע הבדיקות הפתוח axe-core. הדוח להערכה ראשונית בלבד ואינו תחליף לבדיקה ידנית או לייעוץ משפטי.</p>
+  </div>
+</footer>
+
+<script src="/app.js" defer></script>
+</body>
+</html>
