@@ -127,6 +127,7 @@
   }
 
   function renderReport(data) {
+    progressCard.hidden = true;
     const s = data.summary;
     const byImpact = s.violations.byImpact || {};
     const kb = s.keyboard || { pagesWithTrap: 0, pagesMissingFocusIndicator: 0 };
