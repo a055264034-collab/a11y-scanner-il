@@ -74,6 +74,29 @@
       '</div>';
   }
 
+  function renderHeuristics(p) {
+    const parts = [];
+    const kb = p.keyboard;
+    if (kb) {
+      if (kb.possibleTrap) {
+        parts.push('<p class="heur-bad">מקלדת: זוהתה מלכודת מוקד אפשרית אחרי ' + kb.tabsSent + ' לחיצות Tab (' + esc(kb.trapSelector || '') + '). דורש בדיקה ידנית.</p>');
+      }
+      if (kb.noIndicatorCount > 0) {
+        parts.push('<p class="heur-bad">מקלדת: ' + kb.noIndicatorCount + ' מתוך ' + kb.uniqueFocusable + ' רכיבים ממוקדים ללא אינדיקטור פוקוס גלוי (היוריסטי — יכול להיות סגנון מותאם שלא זוהה):</p><ul class="heur-list">' +
+          kb.noIndicatorSamples.map(function (s) { return '<li><code>' + esc(s) + '</code></li>'; }).join('') + '</ul>');
+      }
+      if (!kb.possibleTrap && kb.noIndicatorCount === 0) {
+        parts.push('<p class="heur-ok">מקלדת: נסרקו ' + kb.uniqueFocusable + ' רכיבים ממוקדים ראשונים, כולם עם אינדיקטור פוקוס גלוי.</p>');
+      }
+    }
+    if (p.reflow) {
+      parts.push(p.reflow.horizontalScroll
+        ? '<p class="heur-bad">Reflow (קריטריון 1.4.10): ברוחב 320px (שקול לזום 400%) נדרשת גלילה אופקית — רוחב תוכן ' + p.reflow.scrollWidth + 'px.</p>'
+        : '<p class="heur-ok">Reflow: ברוחב 320px אין גלילה אופקית.</p>');
+    }
+    return parts.length ? '<div class="heur">' + parts.join('') + '</div>' : '';
+  }
+
   function renderPage(p) {
     const n = p.violations ? p.violations.length : 0;
     let body = '';
@@ -85,6 +108,7 @@
         ' · lang: ' + esc(meta.lang || 'חסר') +
         ' · קישור להצהרת נגישות: ' + (meta.hasA11yStatementLink ? 'נמצא' : 'לא נמצא (היוריסטי)') +
         (p.incompleteCount ? ' · ' + p.incompleteCount + ' בדיקות דורשות סקירה ידנית' : '') + '</p>';
+      body += renderHeuristics(p);
       if (!n) {
         body += '<p>לא נמצאו הפרות בבדיקה האוטומטית. שים לב: זה אינו מבטיח עמידה מלאה — ראה בדיקות ידניות למטה.</p>';
       } else {
@@ -105,6 +129,17 @@
   function renderReport(data) {
     const s = data.summary;
     const byImpact = s.violations.byImpact || {};
+    const kb = s.keyboard || { pagesWithTrap: 0, pagesMissingFocusIndicator: 0 };
+    let stmtLbl = 'לא נמצא';
+    if (s.a11yStatementLinkFound && s.statement && s.statement.reachable) {
+      const bits = [];
+      bits.push(s.statement.mentionsCoordinator ? 'רכז ✓' : 'רכז?');
+      bits.push(s.statement.hasContact ? 'פרטי קשר ✓' : 'פרטי קשר?');
+      bits.push(s.statement.mentionsUpdate ? 'עדכון ✓' : 'עדכון?');
+      stmtLbl = bits.join(' · ');
+    } else if (s.a11yStatementLinkFound) {
+      stmtLbl = 'קישור נמצא (לא נבדק)';
+    }
     let cards =
       summaryCard(s.pagesScanned, 'דפים נסרקו') +
       summaryCard(s.violations.required, 'הפרות של דרישות החוק', s.violations.required ? 'crit' : 'ok') +
@@ -112,7 +147,9 @@
       summaryCard((byImpact.serious || 0), 'חמורות', 'serious') +
       summaryCard((byImpact.moderate || 0) + (byImpact.minor || 0), 'בינוניות וקלות', 'moderate') +
       summaryCard(s.violations.recommended + s.violations.practice, 'המלצות מעבר לחוק') +
-      summaryCard(s.a11yStatementLinkFound ? 'נמצא' : 'לא נמצא', 'קישור להצהרת נגישות (היוריסטי)', s.a11yStatementLinkFound ? 'ok' : 'moderate');
+      summaryCard(kb.pagesWithTrap + kb.pagesMissingFocusIndicator, 'דפים עם ממצאי מקלדת', (kb.pagesWithTrap + kb.pagesMissingFocusIndicator) ? 'serious' : 'ok') +
+      summaryCard(s.pagesHorizontalScroll || 0, 'דפים עם גלילה אופקית בזום', (s.pagesHorizontalScroll || 0) ? 'serious' : 'ok') +
+      summaryCard(stmtLbl, 'הצהרת נגישות (היוריסטי)', s.a11yStatementLinkFound ? 'ok' : 'moderate');
     summaryGrid.innerHTML = cards;
 
     pagesList.innerHTML = data.pages.map(renderPage).join('');
