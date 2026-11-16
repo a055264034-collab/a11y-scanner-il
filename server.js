@@ -13,7 +13,9 @@ app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1h' }));
 
 const jobs = new Map();
 let activeJobs = 0;
-const MAX_CONCURRENT = 2;
+// One Chromium job at a time: concurrent heavy scans exhaust the free tier's RAM
+// and the whole service gets killed (502 for everyone).
+const MAX_CONCURRENT = Math.max(1, Number(process.env.MAX_CONCURRENT || 1));
 
 // cleanup finished jobs after 30 min
 setInterval(() => {
