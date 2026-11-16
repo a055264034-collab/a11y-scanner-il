@@ -169,7 +169,11 @@
       const res = await fetch('/api/jobs/' + jobId);
       const data = await res.json();
       if (!res.ok) { showError(data.error || 'שגיאה בקריאת הסריקה'); stopAll(); return; }
-      setProgress(data.done, data.total, data.current);
+      if (data.status === 'queued') {
+        progressText.textContent = 'הסריקה נכנסה לתור — סריקה אחרת רצה כעת, שלך תתחיל מיד כשתתפנה';
+      } else {
+        setProgress(data.done, data.total, data.current);
+      }
       if (data.status === 'done') {
         const full = await (await fetch('/api/jobs/' + jobId + '?full=1')).json();
         stopAll();
