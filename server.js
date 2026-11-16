@@ -14,8 +14,32 @@ app.use(express.static(path.join(__dirname, 'public'), { maxAge: '1h' }));
 const jobs = new Map();
 let activeJobs = 0;
 // One Chromium job at a time: concurrent heavy scans exhaust the free tier's RAM
-// and the whole service gets killed (502 for everyone).
+// and the whole service gets killed (502 for everyone). Additional scans queue
+// instead of being turned away.
 const MAX_CONCURRENT = Math.max(1, Number(process.env.MAX_CONCURRENT || 1));
+// A stuck job must never hold the slot forever.
+const JOB_TIMEOUT_MS = Math.max(60000, Number(process.env.JOB_TIMEOUT_MS || 20 * 60 * 1000));
+
+function startNext() {
+  if (activeJobs >= MAX_CONCURRENT) return;
+  const next = [...jobs.values()].find((j) => j.status === 'queued');
+  if (!next) return;
+  activeJobs++;
+  const timer = setTimeout(() => {
+    if (!next.finished) next.cancelled = true;
+  }, JOB_TIMEOUT_MS);
+  runJob(next, next.startUrl, { maxPages: next.maxPages })
+    .catch((e) => {
+      next.status = 'failed';
+      next.error = String((e && e.message) || e).slice(0, 400);
+    })
+    .finally(() => {
+      clearTimeout(timer);
+      next.finished = Date.now();
+      activeJobs--;
+      startNext();
+    });
+}
 
 // cleanup finished jobs after 30 min
 setInterval(() => {
@@ -48,9 +72,6 @@ app.post('/api/scan', async (req, res) => {
   } catch (e) {
     return res.status(400).json({ error: e.message || 'כתובת לא תקינה' });
   }
-  if (activeJobs >= MAX_CONCURRENT) {
-    return res.status(429).json({ error: 'המערכת עמוסה כרגע — נסה שוב בעוד דקה' });
-  }
   const id = crypto.randomUUID();
   const job = {
     id,
@@ -63,18 +84,11 @@ app.post('/api/scan', async (req, res) => {
     pages: [],
     summary: null,
     error: null,
+    startUrl,
+    maxPages,
   };
   jobs.set(id, job);
-  activeJobs++;
-  runJob(job, startUrl, { maxPages })
-    .catch((e) => {
-      job.status = 'failed';
-      job.error = String((e && e.message) || e).slice(0, 400);
-    })
-    .finally(() => {
-      job.finished = Date.now();
-      activeJobs--;
-    });
+  startNext();
   res.json({ jobId: id });
 });
 
